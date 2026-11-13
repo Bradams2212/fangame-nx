@@ -10,6 +10,13 @@ cd "$WS"
 linuxize build-deps.sh > build/build-deps.linux.sh
 bash build/build-deps.linux.sh 2>&1 | tee logs/build-deps.log || true
 
+# build-deps.sh exports LDFLAGS with -specs=switch.specs, which clashes with the CMake toolchain file
+# ("linker script ... appears multiple times"), so its uchardet and SDL_sound steps fail on Linux.
+# build-deps2.sh builds those two the working way (static try-compile, no LDFLAGS).
+say "build-deps2.sh (linuxized): uchardet + SDL_sound"
+linuxize build-deps2.sh > build/build-deps2.linux.sh
+bash build/build-deps2.linux.sh 2>&1 | tee logs/build-deps2.log || true
+
 missing=""
 for l in $need; do [ -f "$WS/out/nx/lib/$l" ] || missing="$missing $l"; done
 if [ -n "$missing" ]; then

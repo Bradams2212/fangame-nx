@@ -5,7 +5,7 @@
 say "Switch portlibs"
 dkp-pacman -Syu --noconfirm || dkp-pacman -Sy --noconfirm || true
 
-REQUIRED="switch-dev switch-cmake devkitpro-pkgbuild-helpers
+REQUIRED="switch-dev switch-cmake
  switch-sdl2 switch-sdl2_image switch-sdl2_ttf switch-mesa switch-libdrm_nouveau switch-openal-soft
  switch-libogg switch-libvorbis switch-libtheora switch-mpg123 switch-libmodplug
  switch-physfs switch-freetype switch-harfbuzz switch-curl
