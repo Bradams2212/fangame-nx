@@ -1,0 +1,10 @@
+Linux/GitHub Actions build for fangame-nx (rgss-switch engine).
+
+Files in this bundle (copy into the ROOT of your fork of theflash48/fangame-nx):
+  .github/workflows/switch-build.yml
+  ci/*.sh, ci/apply_mkxpz_patches.py, ci/extra/perfil-gs-vitro.json
+
+Run: Actions tab -> switch-build -> Run workflow.
+Result: artifact "rgss-switch-release" (the engine zip) and "build-logs".
+Untested stages (could not run here): the dkp-pacman package names, source downloads, and every
+compile/link step. The patch stage and the packaging layout were tested.

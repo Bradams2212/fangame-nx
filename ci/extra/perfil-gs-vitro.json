@@ -1,0 +1,18 @@
+{
+  "slug": "pokemon-gs-vitro",
+  "nombre": "Pokémon GS Vitro",
+  "autor": "Port a Nintendo Switch",
+  "titleid": null,
+  "detectar": {
+    "titulo": "^Pokemon GS Vitro$"
+  },
+  "motor": "ruby18",
+  "estado": "sin-probar",
+  "mkxp": {},
+  "shims": [],
+  "preload": [],
+  "sueltos": ["Localizations"],
+  "excluir": [],
+  "rubyLoadpath": [],
+  "notas": "Essentials v16 modificado, mkxp con Ruby 1.8 embebido (como Opalo). 397 secciones; con NXFuente solo 2 no compilan (PokeBattle_Dynamax:187 y Pokemon_MegaEvolution:2049), arregladas en un Scripts.rxdata parcheado. Localizations/ se lee con File/Dir, por eso va suelta. Sockets, Wininet, Walker Net y Discord quedan en manos del Win32API postizo. Usa .ogg/.mp3, sin MIDI."
+}
