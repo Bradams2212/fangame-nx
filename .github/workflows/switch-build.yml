@@ -1,0 +1,82 @@
+# Builds the rgss-switch engine (mkxp-z + CRuby for Nintendo Switch) on Linux, in GitHub's
+# devkitPro container, and uploads rgss-switch-<VERSION>.zip as an artifact.
+#
+# Run it by hand: Actions tab -> "switch-build" -> Run workflow.
+# The long Ruby stage is cached, so if a later stage fails and is fixed, a re-run is much faster.
+name: switch-build
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: devkitpro/devkita64:latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Host tools
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            ruby python3 python-is-python3 xxd zip unzip patch curl ca-certificates xz-utils \
+            autoconf automake libtool cmake pkg-config git make bison file
+          ruby --version; cmake --version | head -1; aarch64-none-elf-gcc --version | head -1
+
+      - name: Switch libraries (dkp-pacman)
+        run: bash ci/install_portlibs.sh
+
+      - name: Restore Ruby/deps cache
+        id: cache
+        uses: actions/cache/restore@v4
+        with:
+          path: out
+          key: nxdeps-${{ hashFiles('ci/*.sh', 'ci/*.py', 'patches/000[1-5]-*.patch', 'patches/nxcompat.c', 'patches/extinit.c', 'build-deps.sh') }}
+
+      - name: Fetch sources
+        run: bash ci/fetch_sources.sh
+
+      - name: Patch sources
+        run: bash ci/patch_sources.sh
+
+      - name: libnxcompat
+        run: bash ci/build_nxcompat.sh
+
+      - name: Helper libraries (iconv, uchardet, SDL_sound, pixman)
+        run: bash ci/build_deps.sh
+
+      - name: CRuby 3.1.7 for Horizon
+        run: bash ci/build_ruby.sh
+
+      - name: Save Ruby/deps cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: out
+          key: nxdeps-${{ hashFiles('ci/*.sh', 'ci/*.py', 'patches/000[1-5]-*.patch', 'patches/nxcompat.c', 'patches/extinit.c', 'build-deps.sh') }}
+
+      - name: Engine (rgss-switch.nro)
+        run: bash ci/build_engine.sh
+
+      - name: Package release zip
+        run: bash ci/package.sh
+
+      - name: Upload release zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: rgss-switch-release
+          path: release/*.zip
+          if-no-files-found: error
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            logs
+            docs/dep-*.log
+            build/ruby-switch/config.log
+            build/ruby-switch/mkmf.log
+            build/ruby-switch/ext/**/mkmf.log
+          if-no-files-found: ignore
