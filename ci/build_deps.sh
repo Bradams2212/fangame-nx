@@ -3,6 +3,7 @@
 . "$(dirname "$0")/env.sh"
 need="libiconv.a libuchardet.a libSDL2_sound.a libpixman-1.a"
 have_all=1; for l in $need; do [ -f "$WS/out/nx/lib/$l" ] || have_all=0; done
+[ -f "$WS/out/nx/include/iconv.h" ] || have_all=0
 [ $have_all = 1 ] && { echo "dependencies already built"; exit 0; }
 
 say "build-deps.sh (linuxized)"
@@ -32,6 +33,17 @@ if [ -f out/nx/lib/libuchardet.a ]; then
   cp src/uchardet/src/uchardet.h out/nx/include/uchardet.h
   cp src/uchardet/src/uchardet.h out/nx/include/uchardet/uchardet.h
 fi
+
+# libiconv's `make install` does not put iconv.h in the prefix, so the engine compiles against newlib's
+# iconv.h, which asks for iconv_open() & co. -- functions that do not exist (libiconv.a exports
+# libiconv_open()). libiconv's own header remaps the names. (docs/bitacora-anil.md 5.30)
+if [ ! -f out/nx/include/iconv.h ]; then
+  for h in build/libiconv/include/iconv.h.inst build/libiconv/include/iconv.h; do
+    if [ -f "$h" ]; then cp "$h" out/nx/include/iconv.h; echo "installed libiconv header from $h"; break; fi
+  done
+fi
+grep -Eq "define[[:space:]]+iconv_open[[:space:]]+libiconv_open" out/nx/include/iconv.h 2>/dev/null \
+  || die "out/nx/include/iconv.h is missing or does not remap iconv_open -> libiconv_open"
 
 missing=""
 for l in $need; do [ -f "$WS/out/nx/lib/$l" ] || missing="$missing $l"; done

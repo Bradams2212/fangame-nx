@@ -3,6 +3,8 @@
 . "$(dirname "$0")/env.sh"
 cd "$WS"
 [ -f out/nx/lib/libruby-static.a ] || die "libruby-static.a missing"
+grep -Eq "define[[:space:]]+iconv_open[[:space:]]+libiconv_open" out/nx/include/iconv.h 2>/dev/null \
+  || die "out/nx/include/iconv.h (libiconv's header) is missing; the engine would link against newlib's iconv, which does not exist"
 command -v python >/dev/null || ln -sf "$(command -v python3)" /usr/local/bin/python   # Makefile calls `python`
 
 say "shaders / embedded assets (gen-xxd.sh, linuxized)"
