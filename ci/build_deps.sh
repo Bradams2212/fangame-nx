@@ -17,6 +17,22 @@ say "build-deps2.sh (linuxized): uchardet + SDL_sound"
 linuxize build-deps2.sh > build/build-deps2.linux.sh
 bash build/build-deps2.linux.sh 2>&1 | tee logs/build-deps2.log || true
 
+# uchardet's own *test program* fails to link (C test, C++ library, no libstdc++), which aborts
+# `make install` even though libuchardet.a itself built fine. Install the library and header by hand.
+# The engine does `#include <uchardet.h>`, so the header goes in include/ and include/uchardet/.
+if [ ! -f out/nx/lib/libuchardet.a ]; then
+  built="$(find build/uchardet -name libuchardet.a 2>/dev/null | head -1)"
+  if [ -n "$built" ]; then
+    echo "installing uchardet by hand from $built"
+    cp "$built" out/nx/lib/libuchardet.a
+  fi
+fi
+if [ -f out/nx/lib/libuchardet.a ]; then
+  mkdir -p out/nx/include/uchardet
+  cp src/uchardet/src/uchardet.h out/nx/include/uchardet.h
+  cp src/uchardet/src/uchardet.h out/nx/include/uchardet/uchardet.h
+fi
+
 missing=""
 for l in $need; do [ -f "$WS/out/nx/lib/$l" ] || missing="$missing $l"; done
 if [ -n "$missing" ]; then
